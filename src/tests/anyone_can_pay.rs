@@ -439,6 +439,7 @@ fn test_no_pair() {
 }
 
 #[test]
+#[ignore]
 fn test_overflow() {
     let mut data_loader = DummyDataLoader::new();
     let privkey = Generator::random_privkey();
