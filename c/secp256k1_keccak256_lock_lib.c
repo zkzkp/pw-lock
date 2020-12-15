@@ -134,7 +134,7 @@ int hash_amount(uint64_t capacity, unsigned char *hash) {
   unsigned char amount[100];
 
   /* format capacity */
-  int len = snprintf((char *)&amount, 100, "%.8fCKB", capacity / 100000000.0);
+  int len = printf((char *)&amount, 100, "%.8fCKB", capacity / 100000000.0);
 
   /* calculate keccak256 hash of amount */
   SHA3_CTX sha3_ctx;
