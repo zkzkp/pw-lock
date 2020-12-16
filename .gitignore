@@ -54,6 +54,7 @@ dkms.conf
 build/
 c/blockchain.mol
 c/protocol.h
+c/secp256k1_keccak256_sighash_all_lib.h
 
 target
 ./tmp

@@ -1,6 +1,7 @@
 mod anyone_can_pay;
 mod secp256k1_keccak256_sighash_all;
 mod secp256k1_keccak256_sighash_all_acpl_compatibility;
+mod secp256k1_keccak256_sighash_all_lib;
 
 use bech32::{self, ToBase32};
 use ckb_crypto::secp::{Privkey, Pubkey};
@@ -30,6 +31,12 @@ lazy_static! {
         Bytes::from(&include_bytes!("../../specs/cells/secp256k1_data")[..]);
     pub static ref KECCAK256_ALL_BIN: Bytes =
         Bytes::from(&include_bytes!("../../specs/cells/secp256k1_keccak256_sighash_all")[..]);
+    pub static ref KECCAK256_ALL_LIB_BIN: Bytes = Bytes::from(
+        &include_bytes!("../../specs/cells/secp256k1_keccak256_sighash_all_lib.so")[..]
+    );
+    pub static ref KECCAK256_ALL_LIB_TESTER_BIN: Bytes = Bytes::from(
+        &include_bytes!("../../specs/cells/secp256k1_keccak256_sighash_all_lib_tester")[..]
+    );
     pub static ref KECCAK256_ALL_ACPL_BIN: Bytes =
         Bytes::from(&include_bytes!("../../specs/cells/secp256k1_keccak256_sighash_all_acpl")[..]);
     pub static ref CKB_CELL_UPGRADE_BIN: Bytes =
@@ -304,9 +311,16 @@ pub fn hash_address(lock: Script) -> [u8; 32] {
         ];
 
         let mut prefix;
-        if code_hash.raw_data().to_vec().eq(&secp256k1_blake160_sighash_all_type_hash) {
+        if code_hash
+            .raw_data()
+            .to_vec()
+            .eq(&secp256k1_blake160_sighash_all_type_hash)
+        {
             prefix = vec![0x01, 0x00];
-        } else if code_hash.raw_data().to_vec().eq(&secp256k1_blake160_multisig_all_type_hash)
+        } else if code_hash
+            .raw_data()
+            .to_vec()
+            .eq(&secp256k1_blake160_multisig_all_type_hash)
         {
             prefix = vec![0x01, 0x01];
         } else {
