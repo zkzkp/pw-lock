@@ -1,5 +1,7 @@
 #define __SHARED_LIBRARY__ 1
 
+#define CKB_C_STDLIB_PRINTF
+#include "stdio.h"
 #include <string.h>
 #include "bech32.h"
 #include "ckb_syscalls.h"
@@ -133,9 +135,8 @@ int hash_address(mol_seg_t *script_seg, unsigned char *hash) {
 int hash_amount(uint64_t capacity, unsigned char *hash) {
   unsigned char amount[100];
 
-  // TODO: fix snprintf
   /* format capacity */
-  int len = printf((char *)&amount, 100, "%.8fCKB", capacity / 100000000.0);
+  int len = snprintf_((char *)&amount, 100, "%.8fCKB", capacity / 100000000.0);
 
   /* calculate keccak256 hash of amount */
   SHA3_CTX sha3_ctx;
