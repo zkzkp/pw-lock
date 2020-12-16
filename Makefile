@@ -56,7 +56,7 @@ build/dump_secp256k1_data: c/dump_secp256k1_data.c $(SECP256K1_SRC)
 	gcc -O3 -I deps/secp256k1/src -I deps/secp256k1 -o $@ $<
 
 build/generate_data_hash: c/generate_data_hash.c
-	gcc -O3 -I c -o $@ $<
+	gcc -O3 -I c/blake2b -o $@ $<
 
 $(SECP256K1_SRC):
 	cd deps/secp256k1 && \

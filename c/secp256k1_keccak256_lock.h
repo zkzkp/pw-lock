@@ -1,6 +1,7 @@
 #define CKB_C_STDLIB_PRINTF
 
 #include "stdio.h"
+#include "impl.c"
 #include "bech32.h"
 #include "ckb_syscalls.h"
 #include "common.h"

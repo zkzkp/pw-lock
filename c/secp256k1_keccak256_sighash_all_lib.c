@@ -1,7 +1,8 @@
 #define __SHARED_LIBRARY__ 1
-
 #define CKB_C_STDLIB_PRINTF
+
 #include "stdio.h"
+#include "impl.c"
 #include <string.h>
 #include "bech32.h"
 #include "ckb_syscalls.h"
