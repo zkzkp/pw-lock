@@ -133,6 +133,7 @@ int hash_address(mol_seg_t *script_seg, unsigned char *hash) {
 int hash_amount(uint64_t capacity, unsigned char *hash) {
   unsigned char amount[100];
 
+  // TODO: fix snprintf
   /* format capacity */
   int len = printf((char *)&amount, 100, "%.8fCKB", capacity / 100000000.0);
 
@@ -437,7 +438,7 @@ int verify_signature(unsigned char *message, unsigned char *lock_bytes,
  */
 __attribute__((visibility("default")))
 int verify_secp256k1_keccak_sighash_all(
-    const uint8_t *eth_address) {
+    unsigned char eth_address[BLAKE160_SIZE]) {
   int ret;
   uint64_t len = 0;
   unsigned char temp[TEMP_SIZE];

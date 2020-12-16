@@ -130,6 +130,7 @@ int hash_address(mol_seg_t *script_seg, unsigned char *hash) {
 int hash_amount(uint64_t capacity, unsigned char *hash) {
   unsigned char amount[100];
 
+  // TODO: fix snprintf
   /* format capacity */
   int len = printf((char *)&amount, "%.8fCKB", capacity / 100000000.0);
 

@@ -15,15 +15,18 @@ PROTOCOL_URL := https://raw.githubusercontent.com/nervosnetwork/ckb/${PROTOCOL_V
 # docker pull nervos/ckb-riscv-gnu-toolchain:gnu-bionic-20191012
 BUILDER_DOCKER := nervos/ckb-riscv-gnu-toolchain@sha256:aae8a3f79705f67d505d1f1d5ddc694a4fd537ed1c7e9622420a470d59ba2ec3
 
-all: specs/cells/ckb_cell_upgrade specs/cells/secp256k1_keccak256_sighash_all  specs/cells/secp256k1_keccak256_sighash_all_acpl specs/cells/secp256k1_keccak256_lock_lib.so
+all: specs/cells/ckb_cell_upgrade specs/cells/secp256k1_keccak256_sighash_all  specs/cells/secp256k1_keccak256_sighash_all_acpl specs/cells/secp256k1_keccak256_sighash_all_lib.so build/generate_data_hash c/secp256k1_keccak256_sighash_all_lib.h
 
 all-via-docker: ${PROTOCOL_HEADER}
 	docker run --rm -v `pwd`:/code ${BUILDER_DOCKER} bash -c "cd /code && make"
 
-specs/cells/secp256k1_keccak256_lock_lib.so: c/secp256k1_keccak256_lock_lib.c build/secp256k1_data_info.h
+specs/cells/secp256k1_keccak256_sighash_all_lib.so: c/secp256k1_keccak256_sighash_all_lib.c build/secp256k1_data_info.h
 	$(CC) $(CFLAGS) $(LDFLAGS) -shared -o $@ $<
 	$(OBJCOPY) --only-keep-debug $@ $@.debug
 	$(OBJCOPY) --strip-debug --strip-all $@
+
+c/secp256k1_keccak256_sighash_all_lib.h: build/generate_data_hash specs/cells/secp256k1_keccak256_sighash_all_lib.so
+	$< specs/cells/secp256k1_keccak256_sighash_all_lib.so secp256k1_keccak256_sighash_all_lib_data_hash > $@
 
 specs/cells/secp256k1_keccak256_sighash_all: c/secp256k1_keccak256_sighash_all.c ${PROTOCOL_HEADER} c/keccak256.h c/common.h c/utils.h build/secp256k1_data_info.h $(SECP256K1_SRC)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<
@@ -46,6 +49,9 @@ build/secp256k1_data_info.h: build/dump_secp256k1_data
 build/dump_secp256k1_data: c/dump_secp256k1_data.c $(SECP256K1_SRC)
 	mkdir -p build
 	gcc -O3 -I deps/secp256k1/src -I deps/secp256k1 -o $@ $<
+
+build/generate_data_hash: c/generate_data_hash.c
+	gcc -O3 -I c -o $@ $<
 
 $(SECP256K1_SRC):
 	cd deps/secp256k1 && \
