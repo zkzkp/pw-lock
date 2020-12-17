@@ -1,7 +1,7 @@
 mod anyone_can_pay;
 mod secp256k1_keccak256_sighash_all;
 mod secp256k1_keccak256_sighash_all_acpl_compatibility;
-mod secp256k1_keccak256_sighash_all_lib;
+mod secp256k1_keccak256_sighash_all_dyn;
 
 use bech32::{self, ToBase32};
 use ckb_crypto::secp::{Privkey, Pubkey};
@@ -35,12 +35,8 @@ lazy_static! {
         Bytes::from(&include_bytes!("../../specs/cells/secp256k1_keccak256_sighash_all_acpl")[..]);
     pub static ref CKB_CELL_UPGRADE_BIN: Bytes =
         Bytes::from(&include_bytes!("../../specs/cells/ckb_cell_upgrade")[..]);
-    pub static ref KECCAK256_ALL_LIB_BIN: Bytes = Bytes::from(
-        &include_bytes!("../../specs/cells/secp256k1_keccak256_sighash_all_lib.so")[..]
-    );
-    pub static ref KECCAK256_ALL_LIB_TESTER_BIN: Bytes = Bytes::from(
-        &include_bytes!("../../specs/cells/secp256k1_keccak256_sighash_all_lib_tester")[..]
-    );
+    pub static ref KECCAK256_ALL_DYN_BIN: Bytes =
+        Bytes::from(&include_bytes!("../../specs/cells/secp256k1_keccak256_sighash_all_dyn")[..]);
 }
 
 #[derive(Default)]

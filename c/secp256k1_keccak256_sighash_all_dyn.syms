@@ -1,0 +1,3 @@
+{
+  verify_secp256k1_keccak_sighash_all;
+};

@@ -432,6 +432,7 @@ int verify_signature(unsigned char *message, unsigned char *lock_bytes,
  * Witness:
  * WitnessArgs with a signature in lock field used to present ownership.
  */
+__attribute__((visibility("default")))
 int verify_secp256k1_keccak_sighash_all(
     unsigned char eth_address[BLAKE160_SIZE]) {
   int ret;

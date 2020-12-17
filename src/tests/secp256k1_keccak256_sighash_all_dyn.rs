@@ -1,6 +1,6 @@
 use super::{
     eth160, sign_tx_by_input_group_keccak256, sign_tx_keccak256, DummyDataLoader,
-    KECCAK256_ALL_LIB_BIN, KECCAK256_ALL_LIB_TESTER_BIN, MAX_CYCLES, SECP256K1_DATA_BIN,
+    KECCAK256_ALL_DYN_BIN, MAX_CYCLES, SECP256K1_DATA_BIN,
 };
 use ckb_crypto::secp::{Generator, Privkey};
 use ckb_error::assert_error_eq;
@@ -34,7 +34,7 @@ fn gen_tx_with_grouped_args<R: Rng>(
     rng: &mut R,
 ) -> TransactionView {
     // setup sighash_all dep
-    let sighash_all_lib_tester_out_point = {
+    let sighash_all_out_point = {
         let contract_tx_hash = {
             let mut buf = [0u8; 32];
             rng.fill(&mut buf);
@@ -43,49 +43,18 @@ fn gen_tx_with_grouped_args<R: Rng>(
         OutPoint::new(contract_tx_hash.clone(), 0)
     };
     // dep contract code
-    let sighash_all_lib_tester_cell = CellOutput::new_builder()
+    let sighash_all_cell = CellOutput::new_builder()
         .capacity(
-            Capacity::bytes(KECCAK256_ALL_LIB_TESTER_BIN.len())
+            Capacity::bytes(KECCAK256_ALL_DYN_BIN.len())
                 .expect("script capacity")
                 .pack(),
         )
         .build();
-    let sighash_all_lib_tester_cell_data_hash =
-        CellOutput::calc_data_hash(&KECCAK256_ALL_LIB_TESTER_BIN);
+    let sighash_all_cell_data_hash = CellOutput::calc_data_hash(&KECCAK256_ALL_DYN_BIN);
     dummy.cells.insert(
-        sighash_all_lib_tester_out_point.clone(),
-        (
-            sighash_all_lib_tester_cell,
-            KECCAK256_ALL_LIB_TESTER_BIN.clone(),
-        ),
+        sighash_all_out_point.clone(),
+        (sighash_all_cell, KECCAK256_ALL_DYN_BIN.clone()),
     );
-
-    let sighash_all_lib_out_point = {
-        let lib_tx_hash = {
-            let mut buf = [0u8; 32];
-            rng.fill(&mut buf);
-            buf.pack()
-        };
-        OutPoint::new(lib_tx_hash.clone(), 0)
-    };
-
-    let sighash_all_lib_cell = CellOutput::new_builder()
-        .capacity(
-            Capacity::bytes(KECCAK256_ALL_LIB_BIN.len())
-                .expect("script capacity")
-                .pack(),
-        )
-        .build();
-    // let sighash_all_lib_cell_data_hash = CellOutput::calc_data_hash(&KECCAK256_ALL_LIB_BIN);
-    // println!(
-    //     "lib data hash {:?}",
-    //     sighash_all_lib_cell_data_hash.as_slice()
-    // );
-    dummy.cells.insert(
-        sighash_all_lib_out_point.clone(),
-        (sighash_all_lib_cell, KECCAK256_ALL_LIB_BIN.clone()),
-    );
-
     // setup secp256k1_data dep
     let secp256k1_data_out_point = {
         let tx_hash = {
@@ -122,13 +91,7 @@ fn gen_tx_with_grouped_args<R: Rng>(
     let mut tx_builder = TransactionBuilder::default()
         .cell_dep(
             CellDep::new_builder()
-                .out_point(sighash_all_lib_tester_out_point)
-                .dep_type(DepType::Code.into())
-                .build(),
-        )
-        .cell_dep(
-            CellDep::new_builder()
-                .out_point(sighash_all_lib_out_point)
+                .out_point(sighash_all_out_point)
                 .dep_type(DepType::Code.into())
                 .build(),
         )
@@ -157,7 +120,7 @@ fn gen_tx_with_grouped_args<R: Rng>(
             let previous_out_point = OutPoint::new(previous_tx_hash, 0);
             let script = Script::new_builder()
                 .args(args.pack())
-                .code_hash(sighash_all_lib_tester_cell_data_hash.clone())
+                .code_hash(sighash_all_cell_data_hash.clone())
                 .hash_type(ScriptHashType::Data.into())
                 .build();
             let previous_output_cell = CellOutput::new_builder()
@@ -453,8 +416,6 @@ fn test_super_long_witness() {
 
 #[test]
 fn test_sighash_all_2_in_2_out_cycles() {
-    const CONSUME_CYCLES: u64 = 7778845;
-
     let mut data_loader = DummyDataLoader::new();
     let mut generator = Generator::non_crypto_safe_prng(42);
     let mut rng = rand::rngs::SmallRng::seed_from_u64(42);
@@ -480,8 +441,7 @@ fn test_sighash_all_2_in_2_out_cycles() {
     let resolved_tx = build_resolved_tx(&data_loader, &tx);
     let verify_result =
         TransactionScriptsVerifier::new(&resolved_tx, &data_loader).verify(MAX_CYCLES);
-    let cycles = verify_result.expect("pass verification");
-    assert_eq!(CONSUME_CYCLES, cycles)
+    verify_result.expect("pass verification");
 }
 
 #[test]
