@@ -1,8 +1,8 @@
-TARGET := riscv64-unknown-linux-gnu
+TARGET := riscv64-unknown-elf
 CC := $(TARGET)-gcc
 LD := $(TARGET)-gcc
 OBJCOPY := $(TARGET)-objcopy
-CFLAGS := -fPIC -O3 -nostdlib -nostdinc -nostartfiles -fvisibility=hidden -Ideps/molecule -I deps/secp256k1/src -I deps/secp256k1 -I deps/ckb-c-std-lib -I deps/ckb-c-std-lib/libc -I c -I build -Wall -Werror -Wno-nonnull -Wno-nonnull-compare -Wno-unused-function -g
+CFLAGS := -O3 -I deps/molecule -I deps/secp256k1/src -I deps/secp256k1 -I deps/ckb-c-std-lib -I c -I build -Wall -Werror -Wno-nonnull-compare -Wno-unused-function -g
 LDFLAGS := -Wl,-static -fdata-sections -ffunction-sections -Wl,--gc-sections
 SECP256K1_SRC := deps/secp256k1/src/ecmult_static_pre_context.h
 MOLC := moleculec
@@ -12,26 +12,14 @@ PROTOCOL_SCHEMA := c/blockchain.mol
 PROTOCOL_VERSION := d75e4c56ffa40e17fd2fe477da3f98c5578edcd1
 PROTOCOL_URL := https://raw.githubusercontent.com/nervosnetwork/ckb/${PROTOCOL_VERSION}/util/types/schemas/blockchain.mol
 
-# docker pull nervos/ckb-riscv-gnu-toolchain:gnu-bionic-20191012
-BUILDER_DOCKER := nervos/ckb-riscv-gnu-toolchain@sha256:aae8a3f79705f67d505d1f1d5ddc694a4fd537ed1c7e9622420a470d59ba2ec3
+# docker pull nervos/ckb-riscv-gnu-toolchain:bionic-20190702
+BUILDER_DOCKER := nervos/ckb-riscv-gnu-toolchain@sha256:7b168b4b109a0f741078a71b7c4dddaf1d283a5244608f7851f5714fbad273ba
 
-all: specs/cells/ckb_cell_upgrade specs/cells/secp256k1_keccak256_sighash_all  specs/cells/secp256k1_keccak256_sighash_all_acpl specs/cells/secp256k1_keccak256_sighash_all_lib.so build/generate_data_hash c/secp256k1_keccak256_sighash_all_lib.h specs/cells/secp256k1_keccak256_sighash_all_lib_tester
+all: specs/cells/ckb_cell_upgrade specs/cells/secp256k1_keccak256_sighash_all  specs/cells/secp256k1_keccak256_sighash_all_acpl
 
 all-via-docker: ${PROTOCOL_HEADER}
 	docker run --rm -v `pwd`:/code ${BUILDER_DOCKER} bash -c "cd /code && make"
-
-specs/cells/secp256k1_keccak256_sighash_all_lib_tester: c/secp256k1_keccak256_sighash_all_lib_tester.c c/secp256k1_keccak256_sighash_all_lib.h
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<
-	$(OBJCOPY) --only-keep-debug $@ $@.debug
-	$(OBJCOPY) --strip-debug --strip-all $@
-
-specs/cells/secp256k1_keccak256_sighash_all_lib.so: c/secp256k1_keccak256_sighash_all_lib.c build/secp256k1_data_info.h
-	$(CC) $(CFLAGS) $(LDFLAGS) -shared -o $@ $<
-	$(OBJCOPY) --only-keep-debug $@ $@.debug
-	$(OBJCOPY) --strip-debug --strip-all $@
-
-c/secp256k1_keccak256_sighash_all_lib.h: build/generate_data_hash specs/cells/secp256k1_keccak256_sighash_all_lib.so
-	$< specs/cells/secp256k1_keccak256_sighash_all_lib.so secp256k1_keccak256_sighash_all_lib_data_hash > $@
+	make -f LibMakefile all-via-docker
 
 specs/cells/secp256k1_keccak256_sighash_all: c/secp256k1_keccak256_sighash_all.c ${PROTOCOL_HEADER} c/keccak256.h c/common.h c/utils.h build/secp256k1_data_info.h $(SECP256K1_SRC)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<
@@ -53,10 +41,7 @@ build/secp256k1_data_info.h: build/dump_secp256k1_data
 
 build/dump_secp256k1_data: c/dump_secp256k1_data.c $(SECP256K1_SRC)
 	mkdir -p build
-	gcc -O3 -I deps/secp256k1/src -I deps/secp256k1 -o $@ $<
-
-build/generate_data_hash: c/generate_data_hash.c
-	gcc -O3 -I c/blake2b -o $@ $<
+	gcc $(CFLAGS) -o $@ $<
 
 $(SECP256K1_SRC):
 	cd deps/secp256k1 && \
