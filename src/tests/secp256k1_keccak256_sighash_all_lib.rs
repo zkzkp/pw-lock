@@ -34,7 +34,7 @@ fn gen_tx_with_grouped_args<R: Rng>(
     rng: &mut R,
 ) -> TransactionView {
     // setup sighash_all dep
-    let sighash_all_out_point = {
+    let sighash_all_lib_tester_out_point = {
         let contract_tx_hash = {
             let mut buf = [0u8; 32];
             rng.fill(&mut buf);
@@ -53,12 +53,21 @@ fn gen_tx_with_grouped_args<R: Rng>(
     let sighash_all_lib_tester_cell_data_hash =
         CellOutput::calc_data_hash(&KECCAK256_ALL_LIB_TESTER_BIN);
     dummy.cells.insert(
-        sighash_all_out_point.clone(),
+        sighash_all_lib_tester_out_point.clone(),
         (
             sighash_all_lib_tester_cell,
             KECCAK256_ALL_LIB_TESTER_BIN.clone(),
         ),
     );
+
+    let sighash_all_lib_out_point = {
+        let lib_tx_hash = {
+            let mut buf = [0u8; 32];
+            rng.fill(&mut buf);
+            buf.pack()
+        };
+        OutPoint::new(lib_tx_hash.clone(), 0)
+    };
 
     let sighash_all_lib_cell = CellOutput::new_builder()
         .capacity(
@@ -67,9 +76,13 @@ fn gen_tx_with_grouped_args<R: Rng>(
                 .pack(),
         )
         .build();
-    let _sighash_all_lib_cell_data_hash = CellOutput::calc_data_hash(&KECCAK256_ALL_LIB_BIN);
+    // let sighash_all_lib_cell_data_hash = CellOutput::calc_data_hash(&KECCAK256_ALL_LIB_BIN);
+    // println!(
+    //     "lib data hash {:?}",
+    //     sighash_all_lib_cell_data_hash.as_slice()
+    // );
     dummy.cells.insert(
-        sighash_all_out_point.clone(),
+        sighash_all_lib_out_point.clone(),
         (sighash_all_lib_cell, KECCAK256_ALL_LIB_BIN.clone()),
     );
 
@@ -109,7 +122,13 @@ fn gen_tx_with_grouped_args<R: Rng>(
     let mut tx_builder = TransactionBuilder::default()
         .cell_dep(
             CellDep::new_builder()
-                .out_point(sighash_all_out_point)
+                .out_point(sighash_all_lib_tester_out_point)
+                .dep_type(DepType::Code.into())
+                .build(),
+        )
+        .cell_dep(
+            CellDep::new_builder()
+                .out_point(sighash_all_lib_out_point)
                 .dep_type(DepType::Code.into())
                 .build(),
         )

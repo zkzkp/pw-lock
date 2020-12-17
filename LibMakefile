@@ -39,7 +39,7 @@ build/generate_data_hash: c/lib/generate_data_hash.c
 clean:
 	rm specs/cells/secp256k1_keccak256_sighash_all_lib_tester
 	rm specs/cells/secp256k1_keccak256_sighash_all_lib.so
-	rm c/secp256k1_keccak256_sighash_all_lib.h
+	rm c/lib/secp256k1_keccak256_sighash_all_lib.h
 	rm build/generate_data_hash
 	rm specs/cells/*.debug
 
