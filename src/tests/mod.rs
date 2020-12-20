@@ -1,7 +1,7 @@
 mod anyone_can_pay;
 mod secp256k1_keccak256_sighash_all;
 mod secp256k1_keccak256_sighash_all_acpl_compatibility;
-mod secp256k1_keccak256_sighash_all_dyn;
+mod secp256k1_keccak256_sighash_all_dual;
 
 use bech32::{self, ToBase32};
 use ckb_crypto::secp::{Privkey, Pubkey};
@@ -35,8 +35,8 @@ lazy_static! {
         Bytes::from(&include_bytes!("../../specs/cells/secp256k1_keccak256_sighash_all_acpl")[..]);
     pub static ref CKB_CELL_UPGRADE_BIN: Bytes =
         Bytes::from(&include_bytes!("../../specs/cells/ckb_cell_upgrade")[..]);
-    pub static ref KECCAK256_ALL_DYN_BIN: Bytes =
-        Bytes::from(&include_bytes!("../../specs/cells/secp256k1_keccak256_sighash_all_dyn")[..]);
+    pub static ref KECCAK256_DUAL_BIN: Bytes =
+        Bytes::from(&include_bytes!("../../specs/cells/secp256k1_keccak256_sighash_all_dual")[..]);
 }
 
 #[derive(Default)]
@@ -107,7 +107,7 @@ pub fn sign_tx_keccak256(
 }
 
 pub fn sign_tx_by_input_group_keccak256(
-    dummy: &mut DummyDataLoader,
+    _dummy: &mut DummyDataLoader,
     tx: TransactionView,
     key: &Privkey,
     begin_index: usize,
@@ -161,8 +161,9 @@ pub fn sign_tx_by_input_group_keccak256(
                 hasher.input(&message);
                 message.copy_from_slice(&hasher.result()[0..32]);
 
-                // let message = H256::from(message);
-                let message = get_tx_typed_data_hash(dummy, message, tx.inputs(), tx.outputs());
+                let message = H256::from(message);
+                // FIXME: EIP712
+                // let message = get_tx_typed_data_hash(dummy, message, tx.inputs(), tx.outputs());
                 let sig = key.sign_recoverable(&message).expect("sign");
                 witness
                     .as_builder()
@@ -184,6 +185,8 @@ pub fn sign_tx_by_input_group_keccak256(
         .build()
 }
 
+// FIXME: EIP712
+#[allow(dead_code)]
 pub fn get_tx_typed_data_hash(
     dummy: &mut DummyDataLoader,
     tx_hash: [u8; 32],

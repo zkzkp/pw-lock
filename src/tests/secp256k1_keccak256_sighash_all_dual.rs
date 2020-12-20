@@ -1,6 +1,6 @@
 use super::{
     eth160, sign_tx_by_input_group_keccak256, sign_tx_keccak256, DummyDataLoader,
-    KECCAK256_ALL_DYN_BIN, MAX_CYCLES, SECP256K1_DATA_BIN,
+    KECCAK256_DUAL_BIN, MAX_CYCLES, SECP256K1_DATA_BIN,
 };
 use ckb_crypto::secp::{Generator, Privkey};
 use ckb_error::assert_error_eq;
@@ -45,15 +45,15 @@ fn gen_tx_with_grouped_args<R: Rng>(
     // dep contract code
     let sighash_all_cell = CellOutput::new_builder()
         .capacity(
-            Capacity::bytes(KECCAK256_ALL_DYN_BIN.len())
+            Capacity::bytes(KECCAK256_DUAL_BIN.len())
                 .expect("script capacity")
                 .pack(),
         )
         .build();
-    let sighash_all_cell_data_hash = CellOutput::calc_data_hash(&KECCAK256_ALL_DYN_BIN);
+    let sighash_all_cell_data_hash = CellOutput::calc_data_hash(&KECCAK256_DUAL_BIN);
     dummy.cells.insert(
         sighash_all_out_point.clone(),
-        (sighash_all_cell, KECCAK256_ALL_DYN_BIN.clone()),
+        (sighash_all_cell, KECCAK256_DUAL_BIN.clone()),
     );
     // setup secp256k1_data dep
     let secp256k1_data_out_point = {

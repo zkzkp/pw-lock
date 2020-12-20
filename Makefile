@@ -15,16 +15,11 @@ PROTOCOL_URL := https://raw.githubusercontent.com/nervosnetwork/ckb/${PROTOCOL_V
 # docker pull nervos/ckb-riscv-gnu-toolchain:bionic-20190702
 BUILDER_DOCKER := nervos/ckb-riscv-gnu-toolchain@sha256:7b168b4b109a0f741078a71b7c4dddaf1d283a5244608f7851f5714fbad273ba
 
-all: specs/cells/ckb_cell_upgrade specs/cells/secp256k1_keccak256_sighash_all  specs/cells/secp256k1_keccak256_sighash_all_acpl specs/cells/secp256k1_keccak256_sighash_all_dyn
+all: specs/cells/ckb_cell_upgrade specs/cells/secp256k1_keccak256_sighash_all  specs/cells/secp256k1_keccak256_sighash_all_acpl
 
 all-via-docker: ${PROTOCOL_HEADER}
 	docker run --rm -v `pwd`:/code ${BUILDER_DOCKER} bash -c "cd /code && make"
-	make -f DynMakefile all-via-docker
-
-specs/cells/secp256k1_keccak256_sighash_all_dyn: c/secp256k1_keccak256_sighash_all_dyn.c build/secp256k1_data_info.h
-	$(CC) $(CFLAGS) $(LDFLAGS) -fPIC -fPIE -Wl,--dynamic-list c/secp256k1_keccak256_sighash_all_dyn.syms -o $@ $<
-	$(OBJCOPY) --only-keep-debug $@ $(subst specs/cells,build,$@.debug)
-	$(OBJCOPY) --strip-debug --strip-all $@
+	make -f DualMakefile all-via-docker
 
 specs/cells/secp256k1_keccak256_sighash_all: c/secp256k1_keccak256_sighash_all.c ${PROTOCOL_HEADER} c/keccak256.h c/common.h c/utils.h build/secp256k1_data_info.h $(SECP256K1_SRC)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<
