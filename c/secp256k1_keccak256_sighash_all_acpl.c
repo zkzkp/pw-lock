@@ -12,13 +12,13 @@
  * otherwise, the script perform secp256k1_keccak256_sighash_all verification.
  */
 
+#include "anyone_can_pay_lock.h"
 #include "ckb_syscalls.h"
 #include "defs.h"
 #include "protocol.h"
 #include "quick_pow10.h"
 #include "secp256k1_helper.h"
 #include "secp256k1_keccak256_lock.h"
-#include "anyone_can_pay_lock.h"
 
 #define BLAKE2B_BLOCK_SIZE 32
 #define BLAKE160_SIZE 20
