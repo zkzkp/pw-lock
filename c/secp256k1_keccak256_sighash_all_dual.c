@@ -16,6 +16,7 @@
 #define MAX_WITNESS_SIZE 32768
 #define SCRIPT_SIZE 32768
 #define SIGNATURE_SIZE 65
+#define ETH_ADDRESS_SIZE 20
 
 #define MAX_OUTPUT_LENGTH 64
 
@@ -42,8 +43,11 @@
  * Witness:
  * WitnessArgs with a signature in lock field used to present ownership.
  */
-__attribute__((visibility("default"))) int verify_secp256k1_keccak_sighash_all(
-    unsigned char eth_address[BLAKE160_SIZE]) {
+__attribute__((visibility("default"))) int validate(const uint8_t *lock_args, uint64_t lock_args_size) {
+  if (lock_args_size != ETH_ADDRESS_SIZE) {
+      return ERROR_ARGUMENTS_LEN;
+  }
+
   int ret;
   uint64_t len = 0;
   unsigned char temp[TEMP_SIZE];
@@ -173,7 +177,7 @@ __attribute__((visibility("default"))) int verify_secp256k1_keccak_sighash_all(
   keccak_update(&sha3_ctx, &temp[1], pubkey_size - 1);
   keccak_final(&sha3_ctx, temp);
 
-  if (memcmp(eth_address, &temp[12], BLAKE160_SIZE) != 0) {
+  if (memcmp(lock_args, &temp[12], ETH_ADDRESS_SIZE) != 0) {
     return ERROR_PUBKEY_BLAKE160_HASH;
   }
 
@@ -256,5 +260,5 @@ int main() {
     return ERROR_ARGUMENTS_LEN;
   }
 
-  return verify_secp256k1_keccak_sighash_all(args_bytes_seg.ptr);
+  return validate(args_bytes_seg.ptr, args_bytes_seg.size);
 }
